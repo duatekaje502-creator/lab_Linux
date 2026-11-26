@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ubuntu 24.04 LTS - Web Terminal Simulator</title>
+    <title>Ubuntu 24.04 LTS - Interactive Learning Terminal</title>
     <style>
         * {
             box-sizing: border-box;
@@ -22,11 +22,18 @@
             color: #ffffff;
         }
 
-        .terminal-window {
+        .main-container {
+            display: flex;
             width: 100%;
-            max-width: 900px;
-            height: 85vh;
-            background-color: rgba(48, 10, 36, 0.95);
+            max-width: 1250px;
+            height: 88vh;
+            gap: 15px;
+        }
+
+        /* Jendela Terminal Utama */
+        .terminal-window {
+            flex: 2;
+            background-color: rgba(48, 10, 36, 0.96);
             border-radius: 10px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
             display: flex;
@@ -35,8 +42,21 @@
             border: 1px solid #5e2750;
         }
 
-        /* Header / Title Bar ala Ubuntu */
-        .terminal-header {
+        /* Panel Sidebar Petunjuk Belajar */
+        .guide-panel {
+            flex: 1;
+            min-width: 320px;
+            background-color: rgba(30, 30, 30, 0.95);
+            border-radius: 10px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #444;
+            font-family: sans-serif;
+        }
+
+        .terminal-header, .guide-header {
             background-color: #2c2c2c;
             padding: 10px 15px;
             display: flex;
@@ -62,16 +82,16 @@
         .minimize { background-color: #f4bf4f; }
         .maximize { background-color: #61c554; }
 
-        .terminal-title {
+        .terminal-title, .guide-title {
             font-size: 13px;
-            color: #cccccc;
+            color: #e0e0e0;
             font-family: sans-serif;
             font-weight: bold;
         }
 
         .spacer { width: 50px; }
 
-        /* Area Output Terminal */
+        /* Isi Terminal */
         .terminal-body {
             flex: 1;
             padding: 15px;
@@ -82,23 +102,18 @@
         }
 
         .output-line {
-            margin-bottom: 4px;
+            margin-bottom: 5px;
             word-wrap: break-word;
             white-space: pre-wrap;
         }
 
-        /* Baris Input */
         .input-line {
             display: flex;
             align-items: center;
             flex-wrap: wrap;
         }
 
-        .prompt {
-            margin-right: 8px;
-            white-space: nowrap;
-        }
-
+        .prompt { margin-right: 8px; white-space: nowrap; }
         .prompt-user { color: #8ae234; font-weight: bold; }
         .prompt-sep { color: #ffffff; }
         .prompt-dir { color: #729fcf; font-weight: bold; }
@@ -114,7 +129,76 @@
             outline: none;
         }
 
-        /* Warna Output */
+        /* Isi Panel Belajar */
+        .guide-body {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            font-size: 13px;
+            color: #dcdcdc;
+        }
+
+        .guide-intro {
+            background-color: rgba(233, 84, 32, 0.15);
+            border-left: 3px solid #e95420;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            line-height: 1.4;
+        }
+
+        .category-title {
+            color: #e95420;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 15px 0 8px 0;
+            border-bottom: 1px solid #444;
+            padding-bottom: 4px;
+        }
+
+        .cmd-card {
+            background-color: #252526;
+            border: 1px solid #3c3c3c;
+            border-radius: 6px;
+            padding: 8px 10px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .cmd-card:hover {
+            border-color: #e95420;
+            background-color: #2f2f31;
+            transform: translateX(3px);
+        }
+
+        .cmd-syntax {
+            font-family: 'Ubuntu Mono', monospace;
+            color: #8ae234;
+            font-weight: bold;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .run-badge {
+            font-family: sans-serif;
+            font-size: 10px;
+            background-color: #e95420;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .cmd-desc {
+            color: #b0b0b0;
+            margin-top: 4px;
+            line-height: 1.3;
+        }
+
+        /* Warna Output Terminal */
         .dir-color { color: #729fcf; font-weight: bold; }
         .file-color { color: #ffffff; }
         .exec-color { color: #8ae234; font-weight: bold; }
@@ -122,167 +206,90 @@
         .info-color { color: #fce94f; }
         .ubuntu-orange { color: #e95420; font-weight: bold; }
 
-        /* Custom Scrollbar */
-        .terminal-body::-webkit-scrollbar { width: 8px; }
-        .terminal-body::-webkit-scrollbar-track { background: #2c001e; }
-        .terminal-body::-webkit-scrollbar-thumb { background: #77216f; border-radius: 4px; }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 7px; }
+        ::-webkit-scrollbar-track { background: #1e1e1e; }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+
+        /* Responsif untuk layar HP/Tablet */
+        @media (max-width: 850px) {
+            .main-container {
+                flex-direction: column;
+                height: 95vh;
+            }
+            .terminal-window { flex: 1.4; }
+            .guide-panel { flex: 1; min-width: unset; }
+        }
     </style>
 </head>
 <body>
 
-<div class="terminal-window">
-    <div class="terminal-header">
-        <div class="window-controls">
-            <span class="control close"></span>
-            <span class="control minimize"></span>
-            <span class="control maximize"></span>
+<div class="main-container">
+    <!-- KIRI: Jendela Terminal Ubuntu -->
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="window-controls">
+                <span class="control close"></span>
+                <span class="control minimize"></span>
+                <span class="control maximize"></span>
+            </div>
+            <div class="terminal-title">user@ubuntu-sim: ~</div>
+            <div class="spacer"></div>
         </div>
-        <div class="terminal-title">user@ubuntu-sim: ~</div>
-        <div class="spacer"></div>
+
+        <div class="terminal-body" id="terminal-body" onclick="focusInput()">
+            <div id="output"></div>
+            <div class="input-line">
+                <span class="prompt" id="prompt">
+                    <span class="prompt-user">user@ubuntu-sim</span><span class="prompt-sep">:</span><span class="prompt-dir">~</span><span class="prompt-sep">$</span>
+                </span>
+                <input type="text" id="command-input" autocomplete="off" autofocus spellcheck="false">
+            </div>
+        </div>
     </div>
 
-    <div class="terminal-body" id="terminal-body" onclick="focusInput()">
-        <div id="output"></div>
-        <div class="input-line">
-            <span class="prompt" id="prompt">
-                <span class="prompt-user">user@ubuntu-sim</span><span class="prompt-sep">:</span><span class="prompt-dir">~</span><span class="prompt-sep">$</span>
-            </span>
-            <input type="text" id="command-input" autocomplete="off" autofocus spellcheck="false">
+    <!-- KANAN: Panel Petunjuk Belajar Linux -->
+    <div class="guide-panel">
+        <div class="guide-header">
+            <div class="guide-title">📚 Panduan Perintah Ubuntu</div>
         </div>
-    </div>
-</div>
+        <div class="guide-body">
+            <div class="guide-intro">
+                💡 <b>Tips Belajar:</b> Klik pada salah satu kartu perintah di bawah ini untuk langsung mencobanya di terminal, atau ketik <b>tutor</b> untuk panduan latihan!
+            </div>
 
-<script>
-    const outputDiv = document.getElementById('output');
-    const commandInput = document.getElementById('command-input');
-    const terminalBody = document.getElementById('terminal-body');
-    const promptDirSpan = document.querySelector('.prompt-dir');
-    const windowTitle = document.querySelector('.terminal-title');
+            <div class="category-title">1. Navigasi & Direktori</div>
+            
+            <div class="cmd-card" onclick="runSuggestedCommand('pwd')">
+                <div class="cmd-syntax">pwd <span class="run-badge">Klik Uji</span></div>
+                <div class="cmd-desc"><i>Print Working Directory</i> — Menampilkan lokasi folder Anda saat ini.</div>
+            </div>
 
-    // Simulasi Sistem File Virtual
-    const fileSystem = {
-        '/': {
-            type: 'dir',
-            children: {
-                'home': {
-                    type: 'dir',
-                    children: {
-                        'user': {
-                            type: 'dir',
-                            children: {
-                                'Desktop': { type: 'dir', children: {} },
-                                'Documents': {
-                                    type: 'dir',
-                                    children: {
-                                        'catatan.txt': { type: 'file', content: 'Ini adalah simulator Ubuntu berbasis web.\nCocok untuk belajar perintah dasar Linux!' }
-                                    }
-                                },
-                                'Downloads': { type: 'dir', children: {} },
-                                'readme.md': { type: 'file', content: 'Selamat datang di Ubuntu Web Simulator!\nKetik "help" untuk melihat daftar perintah yang tersedia.' }
-                            }
-                        }
-                    }
-                },
-                'etc': {
-                    type: 'dir',
-                    children: {
-                        'os-release': { type: 'file', content: 'NAME="Ubuntu"\nVERSION="24.04 LTS (Noble Numbat)"\nID=ubuntu' }
-                    }
-                }
-            }
-        }
-    };
+            <div class="cmd-card" onclick="runSuggestedCommand('ls -la')">
+                <div class="cmd-syntax">ls -la <span class="run-badge">Klik Uji</span></div>
+                <div class="cmd-desc"><i>List</i> — Melihat semua isi folder beserta hak akses dan detailnya.</div>
+            </div>
 
-    let currentPath = ['home', 'user'];
-    let commandHistory = [];
-    let historyIndex = -1;
+            <div class="cmd-card" onclick="runSuggestedCommand('cd Documents')">
+                <div class="cmd-syntax">cd Documents <span class="run-badge">Klik Uji</span></div>
+                <div class="cmd-desc"><i>Change Directory</i> — Masuk ke dalam folder <b>Documents</b>. Gunakan <code>cd ..</code> untuk kembali.</div>
+            </div>
 
-    // Pesan Pembuka
-    const welcomeMessage = `Welcome to Ubuntu 24.04 LTS (GNU/Linux 6.8.0-generic x86_64)
+            <div class="category-title">2. Membuat & Mengelola File</div>
 
- * Documentation:  https://ubuntu.com
- * GitHub Repo:    Ready for Static Hosting
+            <div class="cmd-card" onclick="runSuggestedCommand('mkdir belajar_linux')">
+                <div class="cmd-syntax">mkdir belajar_linux <span class="run-badge">Klik Uji</span></div>
+                <div class="cmd-desc"><i>Make Directory</i> — Membuat folder baru bernama <b>belajar_linux</b>.</div>
+            </div>
 
-Ketik <span class="info-color">'help'</span> untuk melihat daftar perintah yang tersedia.\n`;
+            <div class="cmd-card" onclick="runSuggestedCommand('touch catatan_baru.txt')">
+                <div class="cmd-syntax">touch catatan_baru.txt <span class="run-badge">Klik Uji</span></div>
+                <div class="cmd-desc">Membuat file kosong baru bernama <b>catatan_baru.txt</b>.</div>
+            </div>
 
-    printOutput(welcomeMessage);
+            <div class="cmd-card" onclick="runSuggestedCommand('echo Halo Ubuntu! > catatan_baru.txt')">
+                <div class="cmd-syntax">echo "Halo Ubuntu!" > catatan_baru.txt <span class="run-badge">Klik Uji</span></div>
+                <div class="cmd-desc">Menulis teks ke dalam file menggunakan operator redirect (<code>></code>).</div>
+            </div>
 
-    // Fokus otomatis ke input saat area terminal diklik
-    function focusInput() {
-        commandInput.focus();
-    }
-
-    // Helper: Mendapatkan objek direktori saat ini
-    function getDirObj(pathArray) {
-        let current = fileSystem['/'];
-        for (let part of pathArray) {
-            if (current.children && current.children[part]) {
-                current = current.children[part];
-            } else {
-                return null;
-            }
-        }
-        return current;
-    }
-
-    // Helper: Format tampilan path (~ untuk /home/user)
-    function formatPath(pathArray) {
-        const fullPath = '/' + pathArray.join('/');
-        if (fullPath === '/home/user') return '~';
-        if (fullPath.startsWith('/home/user/')) return '~' + fullPath.slice(10);
-        return fullPath;
-    }
-
-    // Update tampilan prompt
-    function updatePrompt() {
-        const displayPath = formatPath(currentPath);
-        promptDirSpan.textContent = displayPath;
-        windowTitle.textContent = `user@ubuntu-sim: ${displayPath}`;
-    }
-
-    // Cetak hasil ke layar terminal
-    function printOutput(htmlContent) {
-        const line = document.createElement('div');
-        line.className = 'output-line';
-        line.innerHTML = htmlContent;
-        outputDiv.appendChild(line);
-        terminalBody.scrollTop = terminalBody.scrollHeight;
-    }
-
-    // Daftar Perintah Linux
-    const commands = {
-        help: () => {
-            return `<span class="info-color">Daftar Perintah yang Tersedia:</span>
-  <span class="exec-color">ls</span>          - Menampilkan daftar file dan folder
-  <span class="exec-color">cd [folder]</span> - Berpindah direktori (contoh: cd Documents, cd .., cd ~)
-  <span class="exec-color">pwd</span>         - Menampilkan lokasi direktori saat ini
-  <span class="exec-color">mkdir [nama]</span>- Membuat folder baru
-  <span class="exec-color">touch [nama]</span>- Membuat file kosong baru
-  <span class="exec-color">cat [file]</span>  - Membaca isi file teks
-  <span class="exec-color">rm [nama]</span>   - Menghapus file atau folder
-  <span class="exec-color">echo [teks]</span> - Menampilkan teks ke layar (mendukung > untuk menulis ke file)
-  <span class="exec-color">whoami</span>      - Menampilkan nama pengguna saat ini
-  <span class="exec-color">date</span>        - Menampilkan tanggal dan waktu sistem
-  <span class="exec-color">uname -a</span>    - Menampilkan informasi kernel sistem
-  <span class="exec-color">neofetch</span>    - Menampilkan informasi sistem bergaya Ubuntu
-  <span class="exec-color">history</span>     - Menampilkan riwayat perintah
-  <span class="exec-color">clear</span>       - Membersihkan layar terminal`;
-        },
-
-        pwd: () => '/' + currentPath.join('/'),
-
-        whoami: () => 'user',
-
-        date: () => new Date().toString(),
-
-        uname: (args) => {
-            if (args[0] === '-a') {
-                return 'Linux ubuntu-sim 6.8.0-45-generic #45-Ubuntu SMP x86_64 GNU/Linux';
-            }
-            return 'Linux';
-        },
-
-        ls: (args) => {
-            const dir = getDirObj(currentPath);
-            if (!dir || !dir.children) return '';
-            const items = Object.keys(dir.children);
+            <div class="cmd-card" onclick="runSuggestedCommand('cat catatan_baru.txt')">
